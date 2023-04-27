@@ -13,13 +13,47 @@ loadingScreen = document.querySelector('.loadingScreen')
 convertedCurrencyBox = document.querySelector('.convertedCurrencyBox')
 searchInp = document.querySelector('#searchInp')
 APIKey = '60ec6c2270a80ca6c3a356d4'
+fetchedData = []
+
+const getDataFromAPI = () => {
+    let URL = `https://v6.exchangerate-api.com/v6/${APIKey}/latest/${selectedCurrency.value}`
+    fetch(URL).then(response => response.json()).then((result) => {
+        fetchedData.push(result)
+    })
+}
+
+const getConversion = () => {
+    convertedListTag.innerHTML = ""
+    convertedListTag.style.display = 'none'
+    loadingScreen.style.display = 'flex'
+    let conversionVal = conversionAmount.value
+    setTimeout(() => {
+        let rateData = fetchedData
+        for (currencyCode in countryList) {
+            convertedListTag.innerHTML += `<div class="convertedTag">
+            <span id="flag">
+            <img src="https://flagcdn.com/40x30/${countryList[currencyCode].toLocaleLowerCase()}.png" alt="">
+            <p data-code="${currencyCode}">${currencyCode}</p>
+            </span>
+            <div class="convertedAmount">
+            ${((rateData[0].conversion_rates[selectedCurrency.value] / rateData[0].conversion_rates[currencyCode]) * conversionVal).toFixed(2)}
+            </div>
+            <div class="conversionData">1 ${selectedCurrency.value} = ${rateData[0].conversion_rates[currencyCode]} ${currencyCode}</div>
+            </div>`
+        }
+        loadingScreen.style.display = 'none'
+        convertedListTag.style.display = 'block'
+    }, 2000)
+}
+getDataFromAPI()
+getConversion()
 
 new Promise((resolve, reject) => {
     for (currencyCode in countryList) {
         countriesBox.innerHTML += `<div class="countryTag">
-            <img src="https://flagcdn.com/40x30/${countryList[currencyCode].toLocaleLowerCase()}.png" alt="">
-            <p data-code="${currencyCode}">${currencyCode}</p>
-            </div>`
+        <img src="https://flagcdn.com/40x30/${countryList[currencyCode].toLocaleLowerCase()}.png" alt="">
+        <p data-code="${currencyCode}">${currencyCode}</p>
+        </div>`
     }
     resolve(true)
 }).then(() => {
@@ -31,35 +65,8 @@ conversionAmount.addEventListener("keyup", () => {
     if (conversionVal == "" || conversionVal == "0") {
         conversionAmount.value = '1'
     }
-    getConversion()
 })
 
-
-const getConversion = () => {
-    convertedListTag.innerHTML = ""
-    convertedListTag.style.display = 'none'
-    loadingScreen.style.display = 'flex'
-    let conversionVal = conversionAmount.value
-    let URL = `https://v6.exchangerate-api.com/v6/${APIKey}/latest/${selectedCurrency.value}`
-    fetch(URL).then(response => response.json()).then(result => {
-        let convertedRates = result.conversion_rates
-        for (currencyCode in countryList) {
-            convertedListTag.innerHTML += `<div class="convertedTag">
-            <span id="flag">
-            <img src="https://flagcdn.com/40x30/${countryList[currencyCode].toLocaleLowerCase()}.png" alt="">
-            <p data-code="${currencyCode}">${currencyCode}</p>
-            </span>
-            <div class="convertedAmount">
-            ${(convertedRates[currencyCode] * conversionVal).toFixed(2)}
-            </div>
-            <div class="conversionData">1 ${selectedCurrency.value} = ${convertedRates[currencyCode]} ${currencyCode}</div>
-            </div>`
-        }
-        loadingScreen.style.display = 'none'
-        convertedListTag.style.display = 'block'
-    })
-}
-getConversion()
 
 const filterData = () => {
     notFound.style.display = 'none'
@@ -88,8 +95,8 @@ const filterData = () => {
 filterData()
 
 const filterConvertedData = () => {
-    convertedListTag.style.display = 'none'
-    loadingScreen.style.display = 'flex'
+    notFound.style.display = 'none'
+    convertedListTag.style.display = 'block'
     let searchedVal = convertedFilter.value.toLowerCase()
     searchedCurrency = []
     searchedCurrency = Object.keys(countryList).filter(data => {
@@ -97,11 +104,8 @@ const filterConvertedData = () => {
     }).map(data => {
         convertedListTag.innerHTML = ''
         let conversionVal = conversionAmount.value
-        let URL = `https://v6.exchangerate-api.com/v6/${APIKey}/latest/${selectedCurrency.value}`
-        fetch(URL).then(response => response.json()).then(result => filteredData(result))
-        const filteredData = (result) => {
-            let convertedRates = result.conversion_rates
-            convertedListTag.innerHTML += `<div class="convertedTag">
+        let convertedRates = fetchedData[0].conversion_rates
+        return `<div class="convertedTag">
                 <span id="flag">
                 <img src="https://flagcdn.com/40x30/${countryList[data].toLocaleLowerCase()}.png" alt="">
                 <p data-code="${data}">${data}</p>
@@ -111,19 +115,13 @@ const filterConvertedData = () => {
                 </div>
                 <div class="conversionData">1 ${selectedCurrency.value} = ${convertedRates[data]} ${data}</div>
                 </div>`;
-        }
     }).join('')
-    if(searchedVal == ""){
-        setTimeout(() => {
-            loadingScreen.style.display = 'none'
-            convertedListTag.style.display = 'block'
-        }, 25000);
-
-    }else{
-        setTimeout(() => {
-            loadingScreen.style.display = 'none'
-            convertedListTag.style.display = 'block'
-        }, 2000);
+    if (searchedCurrency != "") {
+        convertedListTag.innerHTML += searchedCurrency
+    } else {
+        convertedListTag.innerHTML = ''
+        convertedListTag.style.display = 'none'
+        notFound.style.display = 'block'
     }
 }
 
@@ -170,6 +168,7 @@ closeModal.addEventListener("click", () => {
 })
 
 convertedFilter.addEventListener("keyup", () => {
+    convertedListTag.innerHTML = ""
     convertedCurrencyBox.classList.add('active')
     if (convertedFilter.value == "") {
         convertedCurrencyBox.classList.remove('active')
@@ -177,6 +176,6 @@ convertedFilter.addEventListener("keyup", () => {
     filterConvertedData()
 })
 
-window.onload = () => {
-    document.getElementById("loading").style.display = "none"
-}
+// window.onload = () => {
+// }
+document.getElementById("loading").style.display = "none"

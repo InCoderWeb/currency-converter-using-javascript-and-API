@@ -94,8 +94,6 @@ let countryList = {
     "MMK" : "MM",
     "MNT" : "MN",
     "MOP" : "MO",
-    "MRO" : "MR",
-    "MTL" : "MT",
     "MUR" : "MU",
     "MVR" : "MV",
     "MWK" : "MW",

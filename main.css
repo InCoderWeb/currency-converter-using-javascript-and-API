@@ -258,6 +258,21 @@ input[type="number"]::-webkit-outer-spin-button {
   font-size: 0.9rem;
 }
 
+.convertedCurrencyBox .notFound i{
+  font-size: 4rem;
+}
+
+.convertedCurrencyBox .notFound h2 {
+  font-size: 1.9rem;
+  color: rgb(185 26 88);
+}
+
+.convertedCurrencyBox .notFound p {
+  font-size: 0.8rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 .closeModal{
   border: 0;
   top: 1.5rem;
